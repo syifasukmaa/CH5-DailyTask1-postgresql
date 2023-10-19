@@ -1,16 +1,18 @@
-const { Product } = require("../models");
-const imagekit = require("../lib/imagekit");
-const ApiError = require("../utils/apiError");
+const { Product } = require('../models/index');
+const imagekit = require('../lib/imagekit');
+const ApiError = require('../utils/apiError');
 
 const createProduct = async (req, res, next) => {
   const { name, price, stock } = req.body;
-  const file = req.file;
+  console.log(req.user);
+  const shopId = req.user.shopId;
   let img;
+  const file = req.file;
 
   try {
     if (file) {
       // dapatkan extension file nya
-      const split = file.originalname.split(".");
+      const split = file.originalname.split('.');
       const extension = split[split.length - 1];
 
       // upload file ke imagekit
@@ -26,13 +28,12 @@ const createProduct = async (req, res, next) => {
       price,
       stock,
       imageUrl: img,
+      shopId,
     });
 
     res.status(200).json({
-      status: "Success",
-      data: {
-        newProduct,
-      },
+      status: 'Success',
+      data: { newProduct },
     });
   } catch (err) {
     next(new ApiError(err.message, 400));
@@ -44,10 +45,8 @@ const findProducts = async (req, res, next) => {
     const products = await Product.findAll();
 
     res.status(200).json({
-      status: "Success",
-      data: {
-        products,
-      },
+      status: 'Success',
+      data: { products },
     });
   } catch (err) {
     next(new ApiError(err.message, 400));
@@ -63,18 +62,17 @@ const findProductById = async (req, res, next) => {
     });
 
     res.status(200).json({
-      status: "Success",
-      data: {
-        product,
-      },
+      status: 'Success',
+      data: { product },
     });
   } catch (err) {
     next(new ApiError(err.message, 400));
   }
 };
 
-const UpdateProduct = async (req, res, next) => {
+const updateProduct = async (req, res, next) => {
   const { name, price, stock } = req.body;
+
   try {
     const product = await Product.update(
       {
@@ -90,8 +88,8 @@ const UpdateProduct = async (req, res, next) => {
     );
 
     res.status(200).json({
-      status: "Success",
-      message: "sukses update produk",
+      status: 'Success',
+      message: 'Success updated product',
     });
   } catch (err) {
     next(new ApiError(err.message, 400));
@@ -100,6 +98,7 @@ const UpdateProduct = async (req, res, next) => {
 
 const deleteProduct = async (req, res, next) => {
   const { name, price, stock } = req.body;
+
   try {
     const product = await Product.findOne({
       where: {
@@ -108,7 +107,7 @@ const deleteProduct = async (req, res, next) => {
     });
 
     if (!product) {
-      next(new ApiError("Product id tersebut gak ada", 404));
+      return next(new ApiError('Product id tersebut gak ada', 404));
     }
 
     await Product.destroy({
@@ -118,8 +117,8 @@ const deleteProduct = async (req, res, next) => {
     });
 
     res.status(200).json({
-      status: "Success",
-      message: "sukses delete produk",
+      status: 'Success',
+      message: 'Success deleted product',
     });
   } catch (err) {
     next(new ApiError(err.message, 400));
@@ -130,6 +129,6 @@ module.exports = {
   createProduct,
   findProducts,
   findProductById,
-  UpdateProduct,
+  updateProduct,
   deleteProduct,
 };
